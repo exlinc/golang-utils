@@ -3,10 +3,9 @@ workspace:
   path: src/git.exlhub.io/exlinc/golang-utils
 
 pipeline:
-  envconfig-install:
+  install:
     image: golang:1.9.2
     commands:
-      - cd envconfig
       - go get -u github.com/golang/dep/cmd/dep
       - dep ensure -v
   envconfig-test:
