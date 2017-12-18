@@ -14,3 +14,29 @@ pipeline:
       - cd envconfig
       - go build
       - go test
+  uuid-test:
+    image: golang:1.9.2
+    commands:
+      - cd uuid
+      - go build
+      - go test
+  jsonhttp-build:
+    image: golang:1.9.2
+    commands:
+      - cd jsonhttp
+      - go build
+  httpredirect-build:
+    image: golang:1.9.2
+    commands:
+      - cd httpredirect
+      - go build
+  httpcookies-build:
+    image: golang:1.9.2
+    commands:
+      - cd httpcookies
+      - go build
+  htmlhttp-build:
+    image: golang:1.9.2
+    commands:
+      - cd htmlhttp
+      - go build
