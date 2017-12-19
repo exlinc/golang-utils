@@ -53,7 +53,7 @@ func FormatAndContentTypeForImgType(t ImgType) (format imgio.Format, contentType
 
 // HandleAvatarUploadToS3 takes an HTTP request, handles the file upload, resizes the image, and then puts the result onto S3 -- returning the URL and HTTP status code to the caller
 func (cfg *UploaderConfig) HandleAvatarUploadToS3(r *http.Request, fileKey string, exportWidth, exportHeight int, exportType ImgType) (url string, status int, err error) {
-	resourceName, resourcePath, _, status, err := cfg.ImageUploadToFile(r, fileKey)
+	resourceName, resourcePath, _, status, err := cfg.HandleImageUploadToFile(r, fileKey)
 	if err != nil {
 		return "", status, err
 	}
