@@ -11,4 +11,3 @@ func TemporaryRedirect(w http.ResponseWriter, r *http.Request, url string) {
 func PermanentRedirect(w http.ResponseWriter, r *http.Request, url string) {
 	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }
-

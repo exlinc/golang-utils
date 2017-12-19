@@ -40,3 +40,8 @@ pipeline:
     commands:
       - cd htmlhttp
       - go build
+  httpimages-build:
+    image: golang:1.9.2
+    commands:
+      - cd httpimages
+      - go build

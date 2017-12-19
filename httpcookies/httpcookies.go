@@ -1,8 +1,8 @@
 package httpcookies
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 	"time"
 )
 

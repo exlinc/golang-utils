@@ -1,8 +1,8 @@
 package htmlhttp
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 )
 
 // InternalServerErrorView returns a simple HTML page with the internal server error status code

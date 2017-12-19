@@ -1,19 +1,19 @@
 package uuid
 
 import (
-"bytes"
-"crypto/md5"
-"crypto/rand"
-"crypto/sha1"
-"database/sql/driver"
-"encoding/binary"
-"encoding/hex"
-"fmt"
-"hash"
-"net"
-"os"
-"sync"
-"time"
+	"bytes"
+	"crypto/md5"
+	"crypto/rand"
+	"crypto/sha1"
+	"database/sql/driver"
+	"encoding/binary"
+	"encoding/hex"
+	"fmt"
+	"hash"
+	"net"
+	"os"
+	"sync"
+	"time"
 )
 
 // UUID layout variants.
