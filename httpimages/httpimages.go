@@ -15,23 +15,33 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+// ImgType is a type used to track image formats
 type ImgType int
 
 const (
+	// PNG is a PNG image format
 	PNG ImgType = iota
+	// JPG is a JPG/JPEG image format
 	JPG
 )
 
+// UploaderConfig outlines various configuration options for upload-related requests, they are required/optional on a per-method basis
 type UploaderConfig struct {
+	// UploadsDir is the local file path where images will be stored by certain methods
 	UploadsDir   string
+	// S3Session is the S3 session used for S3-related methods
 	S3Session    *session.Session
+	// S3BucketName is the S3 bucket used for S3-related methods
 	S3BucketName string
+	// S3ACL is the ACL used by S3-related methods -- it defaults to 'private' in most methods
 	S3ACL        string
-	ImageType    ImgType
 }
 
+// FormatAndContentTypeForImgType is a utility to get the imgio.Format, content type, and file extension from the ImgType const
 func FormatAndContentTypeForImgType(t ImgType) (format imgio.Format, contentType, extension string) {
 	switch t {
 	case JPG:
@@ -41,6 +51,7 @@ func FormatAndContentTypeForImgType(t ImgType) (format imgio.Format, contentType
 	}
 }
 
+// HandleAvatarUploadToS3 takes an HTTP request, handles the file upload, resizes the image, and then puts the result onto S3 -- returning the URL and HTTP status code to the caller
 func (cfg *UploaderConfig) HandleAvatarUploadToS3(r *http.Request, fileKey string, exportWidth, exportHeight int, exportType ImgType) (url string, status int, err error) {
 	resourceName, resourcePath, _, status, err := cfg.ImageUploadToFile(r, fileKey)
 	if err != nil {
@@ -75,6 +86,7 @@ func (cfg *UploaderConfig) HandleAvatarUploadToS3(r *http.Request, fileKey strin
 	return avatarUrl, http.StatusInternalServerError, err
 }
 
+// SendImageToS3 takes an image from the filesystem and puts it onto S3
 func (cfg *UploaderConfig) SendImageToS3(localFilePath, remoteFilePath, contentType string) (string, error) {
 	if cfg.S3BucketName == "" {
 		return "", errors.New("missing s3 bucket name")
@@ -107,7 +119,8 @@ func (cfg *UploaderConfig) SendImageToS3(localFilePath, remoteFilePath, contentT
 	return res.Location, nil
 }
 
-func (cfg *UploaderConfig) ImageUploadToFile(r *http.Request, fileKey string) (resourceName string, resourcePath string, contentType string, status int, err error) {
+// HandleImageUploadToFile takes an HTTP request, verifies the upload is a supported image, and manages putting the file onto the filesystem -- returning data about the file and the HTTP status code to the caller
+func (cfg *UploaderConfig) HandleImageUploadToFile(r *http.Request, fileKey string) (resourceName string, resourcePath string, contentType string, status int, err error) {
 	if cfg.UploadsDir == "" {
 		return "", "", "", http.StatusInternalServerError, errors.New("missing upload directory")
 	}
@@ -142,6 +155,7 @@ func (cfg *UploaderConfig) ImageUploadToFile(r *http.Request, fileKey string) (r
 	return resourceName, resourcePath, contentType, http.StatusOK, nil
 }
 
+// ResizeImage is a utility to get the resized version of an image using the Lanczos transform
 func ResizeImage(path string, width, height int) (*image.RGBA, error) {
 	imgBefore, err := imgio.Open(path)
 	if err != nil {
@@ -149,4 +163,15 @@ func ResizeImage(path string, width, height int) (*image.RGBA, error) {
 	}
 	imgAfter := transform.Resize(imgBefore, width, height, transform.Lanczos)
 	return imgAfter, nil
+}
+
+// PresignS3GetObjectRequest is a utility to presign an S3 get object request for a period of time -- returning the presigned URL to the caller
+func PresignS3GetObjectRequest(sess *session.Session, bucketName, itemName string, duration time.Duration) (url string, err error) {
+	svc := s3.New(sess)
+
+	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(itemName),
+	})
+	return req.Presign(duration)
 }
