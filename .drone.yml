@@ -45,3 +45,8 @@ pipeline:
     commands:
       - cd httpimages
       - go build
+  sqlkit-build:
+    image: golang:1.9.2
+    commands:
+      - cd sqlkit
+      - go build

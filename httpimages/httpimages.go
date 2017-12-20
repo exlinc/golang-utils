@@ -8,6 +8,7 @@ import (
 	"github.com/anthonynsimon/bild/transform"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"image"
 	"io"
@@ -16,7 +17,6 @@ import (
 	"os"
 	"path"
 	"time"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 // ImgType is a type used to track image formats
@@ -29,16 +29,28 @@ const (
 	JPG
 )
 
+// NewS3UploaderConfig creates an S3Session to bypass vendored lib conflicts across project -- it also enforces using the AWS standard config
+func NewS3UploaderConfig() (*UploaderConfig, error) {
+	s, err := session.NewSession(&aws.Config{})
+	if err != nil {
+		return nil, err
+	}
+	uc := UploaderConfig{
+		S3Session: s,
+	}
+	return &uc, nil
+}
+
 // UploaderConfig outlines various configuration options for upload-related requests, they are required/optional on a per-method basis
 type UploaderConfig struct {
 	// UploadsDir is the local file path where images will be stored by certain methods
-	UploadsDir   string
+	UploadsDir string
 	// S3Session is the S3 session used for S3-related methods
-	S3Session    *session.Session
+	S3Session *session.Session
 	// S3BucketName is the S3 bucket used for S3-related methods
 	S3BucketName string
 	// S3ACL is the ACL used by S3-related methods -- it defaults to 'private' in most methods
-	S3ACL        string
+	S3ACL string
 }
 
 // FormatAndContentTypeForImgType is a utility to get the imgio.Format, content type, and file extension from the ImgType const
