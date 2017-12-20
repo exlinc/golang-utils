@@ -59,7 +59,7 @@ func (ti *TableInfo) Select(stmt string, args ...interface{}) (resp Response) {
 
 func (ti *TableInfo) FetchOnce(args ...interface{}) (resp Response) {
 	if ti.Log != nil {
-		ti.Log.Infof("FETCH_ONCE: %v", args)
+		ti.Log.Info("FETCH_ONCE")
 	}
 	resp = ti.FetchNext(args...)
 	if resp.Success {
@@ -70,7 +70,7 @@ func (ti *TableInfo) FetchOnce(args ...interface{}) (resp Response) {
 
 func (ti *TableInfo) FetchNext(args ...interface{}) (resp Response) {
 	if ti.Log != nil {
-		ti.Log.Infof("FETCH_NEXT: %v", args)
+		ti.Log.Info("FETCH_NEXT")
 	}
 	if ti.Rows.Next() {
 		ti.Error = ti.Rows.Scan(args...)
