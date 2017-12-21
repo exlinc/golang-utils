@@ -24,6 +24,6 @@ func UpdateTimeAuditCols() (clause string) {
 }
 
 func InsertTimeAuditValues() (clause string) {
-	clause = "NOW(), NOW()"
+	clause = ", NOW(), NOW()"
 	return
 }
