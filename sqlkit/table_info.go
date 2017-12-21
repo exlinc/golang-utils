@@ -3,6 +3,7 @@ package sqlkit
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 )
 
 type TableInfo struct {
@@ -36,7 +37,7 @@ func (ti *TableInfo) SetupAndVerify(db *DB) error {
 }
 
 func (ti *TableInfo) errorCode(etype string, code string, seq string) string {
-	return "TI" + ti.ErrorPrefix + etype + code + seq
+	return fmt.Sprintf("TI:%s_%s_%s_%s", ti.ErrorPrefix, etype, code, seq)
 }
 
 func (ti *TableInfo) ExecuteStatement(stmt string, stmtType string, args ...interface{}) (resp Response) {
