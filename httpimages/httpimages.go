@@ -17,6 +17,7 @@ import (
 	"os"
 	"path"
 	"time"
+	"path/filepath"
 )
 
 // ImgType is a type used to track image formats
@@ -63,11 +64,44 @@ func FormatAndContentTypeForImgType(t ImgType) (format imgio.Format, contentType
 	}
 }
 
-// HandleAvatarUploadToS3 takes an HTTP request, handles the file upload, resizes the image, and then puts the result onto S3 -- returning the URL and HTTP status code to the caller
-func (cfg *UploaderConfig) HandleAvatarUploadToS3(r *http.Request, fileKey string, exportWidth, exportHeight int, exportType ImgType) (url string, status int, err error) {
+// HandleAvatarUploadToFile takes an HTTP request, handles the file upload, resizes the image, and then puts the result onto the FS in the upload directory
+func (cfg *UploaderConfig) HandleAvatarUploadToFile(r *http.Request, fileKey string, exportWidth, exportHeight int, exportType ImgType) (destName string, status int, err error) {
 	resourceName, resourcePath, _, status, err := cfg.HandleImageUploadToFile(r, fileKey)
 	if err != nil {
 		return "", status, err
+	}
+	defer os.Remove(resourcePath)
+	resourcePathAfter := fmt.Sprintf("%s.after", resourcePath)
+
+	img, err := ResizeImage(resourcePath, exportHeight, exportWidth)
+	if err != nil {
+		return "", http.StatusBadRequest, err
+	}
+	format, _, extension := FormatAndContentTypeForImgType(exportType)
+	err = imgio.Save(resourcePathAfter, img, format)
+	if err != nil {
+		return "", http.StatusInternalServerError, err
+	}
+
+	destName = fmt.Sprintf("%s_%s_%s%s",
+		resourceName,
+		fmt.Sprint(exportWidth),
+		fmt.Sprint(exportHeight),
+		extension)
+
+	err = os.Rename(resourcePathAfter, filepath.Join(cfg.UploadsDir, destName))
+	if err != nil {
+		return "", http.StatusInternalServerError, err
+	}
+
+	return destName, http.StatusOK, err
+}
+
+// HandleAvatarUploadToS3 takes an HTTP request, handles the file upload, resizes the image, and then puts the result onto S3 -- returning the URL and HTTP status code to the caller
+func (cfg *UploaderConfig) HandleAvatarUploadToS3(r *http.Request, fileKey string, exportWidth, exportHeight int, exportType ImgType) (url string, destKey string, status int, err error) {
+	resourceName, resourcePath, _, status, err := cfg.HandleImageUploadToFile(r, fileKey)
+	if err != nil {
+		return "", "", status, err
 	}
 	defer os.Remove(resourcePath)
 	resourcePathAfter := fmt.Sprintf("%s.after", resourcePath)
@@ -75,12 +109,12 @@ func (cfg *UploaderConfig) HandleAvatarUploadToS3(r *http.Request, fileKey strin
 
 	img, err := ResizeImage(resourcePath, exportHeight, exportWidth)
 	if err != nil {
-		return "", http.StatusBadRequest, err
+		return "", "", http.StatusBadRequest, err
 	}
 	format, contentType, extension := FormatAndContentTypeForImgType(exportType)
 	err = imgio.Save(resourcePathAfter, img, format)
 	if err != nil {
-		return "", http.StatusInternalServerError, err
+		return "", "", http.StatusInternalServerError, err
 	}
 
 	var fileName string
@@ -92,10 +126,10 @@ func (cfg *UploaderConfig) HandleAvatarUploadToS3(r *http.Request, fileKey strin
 
 	avatarUrl, err := cfg.SendImageToS3(resourcePath, fileName, contentType)
 	if err != nil {
-		return "", http.StatusInternalServerError, err
+		return "", "", http.StatusInternalServerError, err
 	}
 
-	return avatarUrl, http.StatusInternalServerError, err
+	return avatarUrl, fileName, http.StatusOK, err
 }
 
 // SendImageToS3 takes an image from the filesystem and puts it onto S3
@@ -177,9 +211,13 @@ func ResizeImage(path string, width, height int) (*image.RGBA, error) {
 	return imgAfter, nil
 }
 
-// PresignS3GetObjectRequest is a utility to presign an S3 get object request for a period of time -- returning the presigned URL to the caller
-func PresignS3GetObjectRequest(sess *session.Session, bucketName, itemName string, duration time.Duration) (url string, err error) {
-	svc := s3.New(sess)
+// PresignS3GetObjectRequest is a utility to presign an S3 get object request for a period of time -- returning the presigned URL to the caller. It uses the AWS standard environment/CLI configuration
+func PresignS3GetObjectRequest(bucketName, itemName string, duration time.Duration) (url string, err error) {
+	s, err := session.NewSession(&aws.Config{})
+	if err != nil {
+		return "", err
+	}
+	svc := s3.New(s)
 
 	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
