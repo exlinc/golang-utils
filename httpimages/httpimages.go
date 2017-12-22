@@ -78,7 +78,12 @@ func (cfg *UploaderConfig) HandleAvatarUploadToFile(r *http.Request, fileKey str
 		return "", http.StatusBadRequest, err
 	}
 	format, _, extension := FormatAndContentTypeForImgType(exportType)
-	err = imgio.Save(resourcePathAfter, img, format)
+	f, err := os.Create(resourcePathAfter)
+	if err != nil {
+		return "", http.StatusInternalServerError, err
+	}
+	defer f.Close()
+	err = imgio.Encode(f, img, format)
 	if err != nil {
 		return "", http.StatusInternalServerError, err
 	}
