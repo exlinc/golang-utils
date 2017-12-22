@@ -188,7 +188,7 @@ func (cfg *UploaderConfig) HandleImageUploadToFile(r *http.Request, fileKey stri
 	}
 
 	resourceName = uuid.NewV4().String()
-	resourcePath = path.Join(cfg.UploadsDir, resourceName, resourceExtension[0])
+	resourcePath = path.Join(cfg.UploadsDir, fmt.Sprintf("%s%s", resourceName, resourceExtension[0]))
 	localImage, err := os.OpenFile(resourcePath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return "", "", "", http.StatusInternalServerError, err
