@@ -50,3 +50,8 @@ pipeline:
     commands:
       - cd sqlkit
       - go build
+  httpmiddleware-build:
+    image: golang:1.9.2
+    commands:
+      - cd httpmiddleware
+      - go build
