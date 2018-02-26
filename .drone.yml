@@ -1,6 +1,6 @@
 workspace:
   base: /go
-  path: src/git.exlhub.io/exlinc/golang-utils
+  path: src/exlgit.com/golang/utils
 
 pipeline:
   install:

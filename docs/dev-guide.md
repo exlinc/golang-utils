@@ -6,4 +6,4 @@
 
 ### Get the project
 
-1. `go get git.exlhub.io/exlinc/golang-utils/...`
+1. `go get exlgit.com/golang/utils/...`

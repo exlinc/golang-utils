@@ -24,7 +24,7 @@ package main
 
 import (
 	"fmt"
-	"git.exlhub.io/exlinc/golang-utils/uuid"
+	"exlgit.com/golang/utils/uuid"
 )
 
 func main() {

@@ -3,7 +3,7 @@
 Borrowed heavily from [Kelsey Hightower's envconfig](https://github.com/kelseyhightower/envconfig)
 
 ```Go
-import "git.exlhub.io/exlinc/golang-utils/envconfig"
+import "exlgit.com/golang/utils/envconfig"
 ```
 
 ## Usage
@@ -30,7 +30,7 @@ import (
     "log"
     "time"
 
-    "git.exlhub.io/exlinc/golang-utils/envconfig"
+    "exlgit.com/golang/utils/envconfig"
 )
 
 type Specification struct {
