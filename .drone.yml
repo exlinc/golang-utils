@@ -65,3 +65,8 @@ pipeline:
     commands:
       - cd sqlutils
       - go build
+  hls-build:
+    image: golang:1.9.2
+    commands:
+      - cd hls
+      - go build
