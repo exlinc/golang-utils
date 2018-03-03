@@ -54,13 +54,13 @@ type UploaderConfig struct {
 	S3ACL string
 }
 
-// FormatAndContentTypeForImgType is a utility to get the imgio.Format, content type, and file extension from the ImgType const
-func FormatAndContentTypeForImgType(t ImgType) (format imgio.Format, contentType, extension string) {
+// FormatAndContentTypeForImgType is a utility to get the imgio.Encoder, content type, and file extension from the ImgType const
+func FormatAndContentTypeForImgType(t ImgType) (format imgio.Encoder, contentType, extension string) {
 	switch t {
 	case JPG:
-		return imgio.JPEG, "image/jpeg", ".jpg"
+		return imgio.JPEGEncoder(95), "image/jpeg", ".jpg"
 	default:
-		return imgio.PNG, "image/png", ".png"
+		return imgio.PNGEncoder(), "image/png", ".png"
 	}
 }
 
@@ -77,13 +77,13 @@ func (cfg *UploaderConfig) HandleAvatarUploadToFile(r *http.Request, fileKey str
 	if err != nil {
 		return "", http.StatusBadRequest, err
 	}
-	format, _, extension := FormatAndContentTypeForImgType(exportType)
+	encoder, _, extension := FormatAndContentTypeForImgType(exportType)
 	f, err := os.Create(resourcePathAfter)
 	if err != nil {
 		return "", http.StatusInternalServerError, err
 	}
 	defer f.Close()
-	err = imgio.Encode(f, img, format)
+	err = encoder(f, img)
 	if err != nil {
 		return "", http.StatusInternalServerError, err
 	}
