@@ -2,22 +2,22 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/anthonynsimon/bild"
   packages = ["clone","imgio","math/f64","parallel","transform"]
-  revision = "35fd1904d43f809ded0959922164885e25577aa2"
-  version = "v0.10.0"
+  revision = "2fc90129559edae2740d9115302e13eeab9f1f56"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
-  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/s3/s3iface","service/s3/s3manager","service/sts"]
-  revision = "ab772a0ae5d958feb51cba2a65eca3911882d791"
-  version = "v1.12.49"
+  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/sdkio","internal/sdkrand","internal/shareddefaults","private/protocol","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/s3/s3iface","service/s3/s3manager","service/sts"]
+  revision = "74ca63959be8b9a9a24cd86eaaea8bf99de8022d"
+  version = "v1.13.25"
 
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
-  version = "v1.32.0"
+  revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
+  version = "v1.33.0"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -38,13 +38,13 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/jmoiron/sqlx"
-  packages = [".","reflectx"]
-  revision = "de8647470aafe4854c976707c431dbe1eb2822c6"
+  name = "golang.org/x/image"
+  packages = ["bmp"]
+  revision = "f3a9b89b59def9194717c1d0bd4c0d08fa1afa7b"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "27230816a76f48a2e500755dcab357a8c8517a48aedd0aa95dea5f4d39663665"
+  inputs-digest = "f20985595962a1f85b012ba736659cf0105906ae05bdaded8c0807398fc82c9a"
   solver-name = "gps-cdcl"
   solver-version = 1
