@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+// BadRequestView returns a simple HTML page with the bad request error status code
+func BadRequestView(w http.ResponseWriter, r *http.Request) {
+	HTMLWriter(w, r, "<div>Bad request</div>", http.StatusInternalServerError)
+}
+
 // InternalServerErrorView returns a simple HTML page with the internal server error status code
 func InternalServerErrorView(w http.ResponseWriter, r *http.Request) {
 	HTMLWriter(w, r, "<div>Internal server error</div>", http.StatusInternalServerError)
