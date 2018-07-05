@@ -3,7 +3,7 @@ package httpimages
 import (
 	"errors"
 	"fmt"
-	"exlgit.com/golang/utils/uuid"
+	"github.com/exlinc/golang-utils/uuid"
 	"github.com/anthonynsimon/bild/imgio"
 	"github.com/anthonynsimon/bild/transform"
 	"github.com/aws/aws-sdk-go/aws"
