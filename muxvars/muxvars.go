@@ -18,6 +18,11 @@ func GetStringVar(r *http.Request, key string) string {
 
 // GetUnsignedIntegerVar tries to get the var with the key and parse it into a base 10 uint
 func GetUnsignedIntegerVar(r *http.Request, key string) uint {
+	return uint(GetUnsignedInteger64Var(r, key))
+}
+
+// GetUnsignedInteger64Var tries to get the var with the key and parse it into a base 10 uint64
+func GetUnsignedInteger64Var(r *http.Request, key string) uint64 {
 	vars := mux.Vars(r)
 	if _, ok := vars[key]; !ok {
 		return 0
@@ -29,7 +34,7 @@ func GetUnsignedIntegerVar(r *http.Request, key string) uint {
 	if err != nil {
 		return 0
 	}
-	return uint(value)
+	return uint64(value)
 }
 
 // GetIntegerVar tries to get the var with the key and parse it into a base 10 int64
