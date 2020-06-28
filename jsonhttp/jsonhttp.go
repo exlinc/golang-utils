@@ -144,6 +144,24 @@ func JSONDecodeAndCatchForAPI(w http.ResponseWriter, r *http.Request, outStruct 
 	return nil
 }
 
+// JSONDecodeNoCatch decodes checkable (and non-checkable) payloads into structs. If the struct passed into `outStruct` satisfied the `CheckableRequest` interface, the check will also be run after decoding the JSON
+func JSONDecodeNoCatch(r *http.Request, outStruct interface{}) error {
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&outStruct)
+	if err != nil {
+		return err
+	}
+	if !isCheckableRequest(outStruct) {
+		return nil
+	}
+	method := reflect.ValueOf(outStruct).MethodByName("Parameters").Interface().(func() error)
+	err = method()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func isCheckableRequest(checkAgainst interface{}) bool {
 	reader := reflect.TypeOf((*CheckableRequest)(nil)).Elem()
 	return reflect.TypeOf(checkAgainst).Implements(reader)
