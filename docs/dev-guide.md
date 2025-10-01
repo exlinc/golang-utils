@@ -1,8 +1,11 @@
 ### Prerequisites
 
-1.  Ubuntu 16.04 (Server or Desktop) operating system -- other similar systems and OS X might work, but aren't guaranteed to...
-2.  GoLang 1.9.^ installed
-3.  GoLang dependency manager installed [(Install guide)](https://github.com/golang/dep/blob/master/docs/installation.md)
+1.  Ubuntu (Server or Desktop) operating system -- other similar systems and OS X might work, but aren't guaranteed to...
+2.  GoLang installed
+
+## How to Publish to Go Modules
+
+https://go.dev/doc/modules/publishing
 
 ### Get the project
 
