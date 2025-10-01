@@ -7,6 +7,9 @@
 
 https://go.dev/doc/modules/publishing
 
+`GOPROXY=proxy.golang.org go list -m github.com/exlinc/golang-utils@v0.1.0`
+
+
 ### Get the project
 
 1.  `go get github.com/exlinc/golang-utils/...`
