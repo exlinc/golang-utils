@@ -180,6 +180,10 @@ func Process(prefix string, spec interface{}) error {
 				Err:       err,
 			}
 		}
+
+		// TODO:
+		// - check info.Alt matches the AWS Var names and if yes, load into the corresponding AWS Var
+		// - check if the value has a prefix matching the AWS Secret prefix and if yes, process the AWS Secret and override the value with its content
 	}
 
 	return err
