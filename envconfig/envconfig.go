@@ -6,8 +6,11 @@ package envconfig
 
 import (
 	"encoding"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -181,10 +184,65 @@ func Process(prefix string, spec interface{}) error {
 			}
 		}
 
-		// TODO:
 		// - check info.Alt matches the AWS Var names and if yes, load into the corresponding AWS Var
+		if awsSecretsRegion == "" && os.Getenv("AWS_REGION") != "" {
+			awsSecretsRegion = os.Getenv("AWS_REGION")
+		} else if awsSecretsRegion == "" && info.Alt == awsDefaultRegionVar {
+			awsSecretsRegion = value
+		} else if awsSecretsRegion == "" && info.Alt == awsSecretsRegionVar {
+			awsSecretsRegion = value
+		}
+
+		if awsLocalConfigProfileName == "" && info.Alt == awsLocalConfigProfileNameVar {
+			awsLocalConfigProfileName = value
+		}
+
 		// - check if the value has a prefix matching the AWS Secret prefix and if yes, process the AWS Secret and override the value with its content
 		// Return a descriptive error if can't retrieve the value
+		if strings.HasPrefix(value, awsSecretManagerArnPrefix) {
+			log.Print("Using secret arn as provided in the Env variable")
+			if awsSecretsManagerClient == nil {
+				var errSecretsClient error
+				awsSecretsManagerClient, errSecretsClient = GetAwsSecretsManagerClient()
+				if errSecretsClient != nil {
+					log.Printf("Error initializing aws secretsmanager client: %v", errSecretsClient)
+					return errSecretsClient
+				}
+			}
+
+			secretId, secretKey, parseArnErr := ParseSecretArn(value)
+			if parseArnErr != nil {
+				log.Printf("In Process while parsing secret arn %s", value)
+				return parseArnErr
+			}
+
+			if len(secretKey) == 0 {
+				log.Printf("In Process secret key is empty in arn %s", value)
+				return parseArnErr
+			}
+
+			secretString, errSecretValue := RetrieveSecretStringVal(awsGenCtx, awsSecretsManagerClient, secretId)
+			if errSecretValue != nil {
+				log.Printf("Error fetching secret for secret ID: %v", value)
+				return errSecretValue
+			}
+
+			var secretJson map[string]string
+			if secretJsonErr := json.Unmarshal([]byte(secretString), &secretJson); secretJsonErr != nil {
+				log.Printf("In Process unmarshal secret %s", secretString)
+				return secretJsonErr
+			}
+
+			secretValue := secretJson[secretKey]
+			if len(secretValue) == 0 {
+				log.Printf("In Process got empty secret value using arn %s", value)
+				return errors.New("empty secret value")
+			}
+
+			log.Printf("Retrieved secret value from secret ARN %s", value)
+
+			value = secretValue
+		}
 	}
 
 	return err
