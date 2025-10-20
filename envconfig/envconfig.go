@@ -228,7 +228,8 @@ func Process(prefix string, spec interface{}) error {
 			}
 
 			var secretJson map[string]string
-			if secretJsonErr := json.Unmarshal([]byte(secretString), &secretJson); secretJsonErr != nil {
+			var secretJsonErr error
+			if secretJsonErr = json.Unmarshal([]byte(secretString), &secretJson); secretJsonErr != nil {
 				log.Printf("In Process unmarshal secret %s", secretString)
 				return secretJsonErr
 			}
