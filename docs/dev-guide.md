@@ -7,6 +7,8 @@
 
 https://go.dev/doc/modules/publishing
 
+1. Make sure to push your local code changes to your remote branch.
+
 ```
 git tag v0.1.1 
 git push origin v0.1.1
