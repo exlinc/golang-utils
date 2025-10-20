@@ -244,6 +244,17 @@ func Process(prefix string, spec interface{}) error {
 			log.Printf("Retrieved secret value from secret ARN %s", value)
 
 			value = secretValue
+
+			err := processField(value, info.Field)
+			if err != nil {
+				return &ParseError{
+					KeyName:   info.Key,
+					FieldName: info.Name,
+					TypeName:  info.Field.Type().String(),
+					Value:     value,
+					Err:       err,
+				}
+			}
 		}
 	}
 
