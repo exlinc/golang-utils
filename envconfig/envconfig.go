@@ -173,6 +173,8 @@ func Process(prefix string, spec interface{}) error {
 			continue
 		}
 
+		raw := info.Tags.Get("raw")
+
 		err := processField(value, info.Field)
 		if err != nil {
 			return &ParseError{
@@ -199,7 +201,7 @@ func Process(prefix string, spec interface{}) error {
 
 		// - check if the value has a prefix matching the AWS Secret prefix and if yes, process the AWS Secret and override the value with its content
 		// Return a descriptive error if can't retrieve the value
-		if strings.HasPrefix(value, awsSecretManagerArnPrefix) {
+		if strings.HasPrefix(value, awsSecretManagerArnPrefix) && !isTrue(raw) {
 			log.Print("Using secret arn as provided in the Env variable")
 			if awsSecretsManagerClient == nil {
 				var errSecretsClient error

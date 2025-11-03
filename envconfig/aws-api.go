@@ -3,13 +3,14 @@ package envconfig
 import (
 	"context"
 	"errors"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	"log"
-	"strings"
-	"time"
 )
 
 // AWS Environment Variables in the scope below must be defined in the Config prior to any variables that use AWS Secrets,
@@ -97,7 +98,7 @@ func RetrieveSecretStringVal(ctx context.Context, client *secretsmanager.Client,
 		return "", err
 	}
 
-	log.Printf("Retrieved secret: %s", *res.SecretString)
+	//log.Printf("Retrieved secret: %s", *res.SecretString)
 	return *res.SecretString, nil
 }
 
