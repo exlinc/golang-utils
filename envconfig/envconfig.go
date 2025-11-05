@@ -208,39 +208,57 @@ func Process(prefix string, spec interface{}) error {
 				awsSecretsManagerClient, errSecretsClient = GetAwsSecretsManagerClient()
 				if errSecretsClient != nil {
 					log.Printf("Error initializing aws secretsmanager client: %v", errSecretsClient)
-					return errSecretsClient
+					if isTrue(req) {
+						return errSecretsClient
+					}
+					continue
 				}
 			}
 
 			secretId, secretKey, parseArnErr := ParseSecretArn(value)
 			if parseArnErr != nil {
-				log.Printf("In Process while parsing secret arn %s", value)
-				return parseArnErr
+				log.Printf("In Process while parsing secret arn %s, encountered error %s", value, parseArnErr)
+				if isTrue(req) {
+					return parseArnErr
+				}
+				continue
 			}
 
 			if len(secretKey) == 0 {
 				log.Printf("In Process secret key is empty in arn %s", value)
-				return parseArnErr
+				if isTrue(req) {
+					return errors.New("secret key is empty in arn " + value)
+				}
+				continue
 			}
 
 			secretString, errSecretValue := RetrieveSecretStringVal(awsGenCtx, awsSecretsManagerClient, secretId)
 			if errSecretValue != nil {
-				log.Printf("Error fetching secret for secret ID: %v", value)
-				return errSecretValue
+				log.Printf("Error fetching secret for secret ID: %v with error %s", value, errSecretValue)
+				if isTrue(req) {
+					return errSecretValue
+				}
+				continue
 			}
 
 			var secretJson map[string]string
 			var secretJsonErr error
 			secretJsonErr = json.Unmarshal([]byte(secretString), &secretJson)
 			if secretJsonErr != nil {
-				log.Printf("In Process unmarshal secret %s", secretString)
-				return secretJsonErr
+				log.Printf("In Process unmarshal secret %s with error %s", secretString, secretJsonErr)
+				if isTrue(req) {
+					return secretJsonErr
+				}
+				continue
 			}
 
 			secretValue := secretJson[secretKey]
 			if len(secretValue) == 0 {
 				log.Printf("In Process got empty secret value using arn %s", value)
-				return errors.New("empty secret value")
+				if isTrue(req) {
+					return errors.New("empty secret value")
+				}
+				continue
 			}
 
 			log.Printf("Retrieved secret value from secret ARN %s", value)
