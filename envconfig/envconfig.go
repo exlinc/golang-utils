@@ -241,9 +241,8 @@ func Process(prefix string, spec interface{}) error {
 				continue
 			}
 
-			var secretJson map[string]string
-			var secretJsonErr error
-			secretJsonErr = json.Unmarshal([]byte(secretString), &secretJson)
+			var secretJson map[string]interface{}
+			secretJsonErr := json.Unmarshal([]byte(secretString), &secretJson)
 			if secretJsonErr != nil {
 				log.Printf("In Process unmarshal secret %s with error %s", secretString, secretJsonErr)
 				if isTrue(req) {
@@ -252,18 +251,15 @@ func Process(prefix string, spec interface{}) error {
 				continue
 			}
 
-			secretValue := secretJson[secretKey]
-			if len(secretValue) == 0 {
-				log.Printf("In Process got empty secret value using arn %s", value)
+			if secretValue, ok := secretJson[secretKey].(string); ok {
+				log.Printf("secretValue successfully retrieved for %s", value)
+				value = secretValue
+			} else {
 				if isTrue(req) {
-					return errors.New("empty secret value")
+					return errors.New("secret value is not string, and conversion is not implemented yet")
 				}
 				continue
 			}
-
-			log.Printf("Retrieved secret value from secret ARN %s", value)
-
-			value = secretValue
 
 			err := processField(value, info.Field)
 			if err != nil {
