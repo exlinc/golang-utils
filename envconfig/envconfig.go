@@ -6,8 +6,11 @@ package envconfig
 
 import (
 	"encoding"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -170,6 +173,8 @@ func Process(prefix string, spec interface{}) error {
 			continue
 		}
 
+		raw := info.Tags.Get("raw")
+
 		err := processField(value, info.Field)
 		if err != nil {
 			return &ParseError{
@@ -178,6 +183,93 @@ func Process(prefix string, spec interface{}) error {
 				TypeName:  info.Field.Type().String(),
 				Value:     value,
 				Err:       err,
+			}
+		}
+
+		// - check info.Alt matches the AWS Var names and if yes, load into the corresponding AWS Var
+		if awsSecretsRegion == "" && os.Getenv("AWS_REGION") != "" {
+			awsSecretsRegion = os.Getenv("AWS_REGION")
+		} else if awsSecretsRegion == "" && info.Alt == awsDefaultRegionVar {
+			awsSecretsRegion = value
+		} else if awsSecretsRegion == "" && info.Alt == awsSecretsRegionVar {
+			awsSecretsRegion = value
+		}
+
+		if awsLocalConfigProfileName == "" && info.Alt == awsLocalConfigProfileNameVar {
+			awsLocalConfigProfileName = value
+		}
+
+		// - check if the value has a prefix matching the AWS Secret prefix and if yes, process the AWS Secret and override the value with its content
+		// Return a descriptive error if can't retrieve the value
+		if strings.HasPrefix(value, awsSecretManagerArnPrefix) && !isTrue(raw) {
+			log.Print("Using secret arn as provided in the Env variable")
+			if awsSecretsManagerClient == nil {
+				var errSecretsClient error
+				awsSecretsManagerClient, errSecretsClient = GetAwsSecretsManagerClient()
+				if errSecretsClient != nil {
+					log.Printf("Error initializing aws secretsmanager client: %v", errSecretsClient)
+					if isTrue(req) {
+						return errSecretsClient
+					}
+					continue
+				}
+			}
+
+			secretId, secretKey, parseArnErr := ParseSecretArn(value)
+			if parseArnErr != nil {
+				log.Printf("In Process while parsing secret arn %s, encountered error %s", value, parseArnErr)
+				if isTrue(req) {
+					return parseArnErr
+				}
+				continue
+			}
+
+			if len(secretKey) == 0 {
+				log.Printf("In Process secret key is empty in arn %s", value)
+				if isTrue(req) {
+					return errors.New("secret key is empty in arn " + value)
+				}
+				continue
+			}
+
+			secretString, errSecretValue := RetrieveSecretStringVal(awsGenCtx, awsSecretsManagerClient, secretId)
+			if errSecretValue != nil {
+				log.Printf("Error fetching secret for secret ID: %v with error %s", value, errSecretValue)
+				if isTrue(req) {
+					return errSecretValue
+				}
+				continue
+			}
+
+			var secretJson map[string]interface{}
+			secretJsonErr := json.Unmarshal([]byte(secretString), &secretJson)
+			if secretJsonErr != nil {
+				log.Printf("In Process unmarshal secret %s with error %s", secretString, secretJsonErr)
+				if isTrue(req) {
+					return secretJsonErr
+				}
+				continue
+			}
+
+			if secretValue, ok := secretJson[secretKey].(string); ok {
+				log.Printf("secretValue successfully retrieved for %s", value)
+				value = secretValue
+			} else {
+				if isTrue(req) {
+					return errors.New("secret value is not string, and conversion is not implemented yet")
+				}
+				continue
+			}
+
+			err := processField(value, info.Field)
+			if err != nil {
+				return &ParseError{
+					KeyName:   info.Key,
+					FieldName: info.Name,
+					TypeName:  info.Field.Type().String(),
+					Value:     value,
+					Err:       err,
+				}
 			}
 		}
 	}

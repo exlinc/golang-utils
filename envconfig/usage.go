@@ -25,14 +25,15 @@ variables can be used:
   [description] {{usage_description .}}
   [type]        {{usage_type .}}
   [default]     {{usage_default .}}
-  [required]    {{usage_required .}}{{end}}
+  [required]    {{usage_required .}}
+  [raw]        	{{usage_raw .}}{{end}}
 `
 	// DefaultTableFormat constant to use to display usage in a tabular format
 	DefaultTableFormat = `This application is configured via the environment. The following environment
 variables can be used:
 
 KEY	TYPE	DEFAULT	REQUIRED	DESCRIPTION
-{{range .}}{{usage_key .}}	{{usage_type .}}	{{usage_default .}}	{{usage_required .}}	{{usage_description .}}
+{{range .}}{{usage_key .}}	{{usage_type .}}	{{usage_default .}}	{{usage_required .}}	{{usage_description .}}	{{usage_raw .}}
 {{end}}`
 )
 
@@ -116,13 +117,13 @@ func Usage(prefix string, spec interface{}) error {
 
 // Usagef writes usage information to the specified io.Writer using the specifed template specification
 func Usagef(prefix string, spec interface{}, out io.Writer, format string) error {
-
 	// Specify the default usage template functions
 	functions := template.FuncMap{
 		"usage_key":         func(v varInfo) string { return v.Key },
 		"usage_description": func(v varInfo) string { return v.Tags.Get("desc") },
 		"usage_type":        func(v varInfo) string { return toTypeDescription(v.Field.Type()) },
 		"usage_default":     func(v varInfo) string { return v.Tags.Get("default") },
+		"usage_raw":         func(v varInfo) string { return v.Tags.Get("raw") },
 		"usage_required": func(v varInfo) (string, error) {
 			req := v.Tags.Get("required")
 			if req != "" {
